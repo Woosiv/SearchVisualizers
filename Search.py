@@ -4,7 +4,7 @@ import time
 from collections import deque
 grid = np.array([1,1])
 start = [1,1]
-end = [9,9]
+end = [3,3]
 
 # Initializes the initial grid for the search methods, based off if its 
 # a cost based search or basic search
@@ -80,17 +80,18 @@ def surroundIndices(pos, bounds, visited=None, omni=True) -> list:
     
     return res
 
-# Returns the path found via breadth first search    
-def breadthFirst() -> list:
+# Returns the path found via breadth first search by default but can be toggled for depth first  
+def firstSearch(breadth = True) -> list:
     #global grid
     # position, parent
     queue = deque([(start, None)])
     visited = set()
     while queue:
-        curr = queue.popleft()
+        #print(queue)
+        curr = queue.popleft() 
+        # time.sleep(2)
         pos = curr[0]
-        if (pos[0], pos[1]) not in visited:
-            if pos == end:
+        if pos == end:
                 # Build the path
                 path = []
                 while curr[1]:
@@ -104,13 +105,23 @@ def breadthFirst() -> list:
                 #print(visitedGrid)
                 #print(len(visited))
                 return path
+        elif (pos[0], pos[1]) not in visited:
             visited.add((pos[0], pos[1]))
             bounds = grid.shape
             indices = [(x, curr) for x in surroundIndices(pos, bounds, visited, False)]
-            queue.extend(indices)
-        
+            queue.extend(indices) if breadth else queue.extendleft(indices)
         
     return None
+
+# Helper function to display path taken by a search
+def printResult(search, pathFound, cost):
+    print(pathFound)
+    res = np.zeros_like(grid)
+    res[pathFound[:,0], pathFound[:,1]] = np.arange(1, len(pathFound)+1)
+    print(f'Path for {search}')
+    print(res)
+    if cost:
+        print(f'The path found by {search} has a cost of {np.sum(grid[pathFound[:,0], pathFound[:,1]])}')
 
             
 if __name__ == '__main__':
@@ -130,13 +141,8 @@ if __name__ == '__main__':
     #assert False
     print("Starting grid")
     print(grid)
-    path = np.array(breadthFirst())
-    res = np.zeros_like(grid)
-    res[path[:,0], path[:,1]] = np.arange(1, len(path)+1)
-    print('Path for breadth first search')
-    print(res)
-    if cost:
-        print(f'The path found by BFS has a cost of {np.sum(grid[path[:,0], path[:,1]])}')
+    printResult('Breadth First Search', np.array(firstSearch()), cost)
+    printResult('Depth First Search', np.array(firstSearch(False)), cost)
     
 
 
