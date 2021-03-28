@@ -2,10 +2,11 @@ import numpy as np
 import timeit
 import time
 from collections import deque
+import heapq
 grid = np.array([1,1])
 start = (1,1)
-end = (3,3)
-
+end = (100,100)
+low = 1
 # Initializes the initial grid for the search methods, based off if its 
 # a cost based search or basic search
 def init_grid(cost = True):
@@ -19,8 +20,9 @@ def init_grid(cost = True):
         y = input("Enter the height of the grid (Must be greater than 0): ")
     y = int(y)
     if cost:
+        global low
         low = input("Enter the lower bound cost of the grid: ")
-        while not low.isdigit():
+        while not low.isdigit() and (low.isdigit() and int(low) <= 0):
             low = input("Enter the lower bound cost of the grid: ")
         low = int(low)
         
@@ -36,13 +38,14 @@ def init_grid(cost = True):
         grid = np.random.randint(low, high, (x,y))
     else:
         grid = np.ones((x,y))
+    grid[end] = 0
     
 # Finds surrounding indices with the given position
-def surroundIndices(pos, bounds, visited=None, omni=False) -> list:
+def surroundIndices(pos, visited=None, omni=False) -> list:
     # If the search decides to not remembered visited nodes
     if visited == None:
         visited = set()
-    
+    bounds = grid.shape
     res = []
     # Top left
     #print(pos)
@@ -82,8 +85,7 @@ def surroundIndices(pos, bounds, visited=None, omni=False) -> list:
 
 # Returns the path found via breadth first search by default but can be toggled for depth first  
 def firstSearch(breadth = True) -> list:
-    #global grid
-    # position, parent
+    startTime = time.perf_counter()
     queue = deque([start])
     # [0] holds parents, [1] holds cost
     parents = {start : (tuple(), 0)}
@@ -101,13 +103,14 @@ def firstSearch(breadth = True) -> list:
             # print(visitedGrid)
             #print(len(visited))
             #print(path)
+            print(f'Breadth First found a path in {time.perf_counter()-startTime:.4f}') if breadth else print(f'Depth First found a path in {time.perf_counter()-startTime:.4f}')
             return path
         elif pos not in visited:
             visited.add(pos)
-            for x in surroundIndices(pos, grid.shape, visited):
+            for x in surroundIndices(pos, visited):
                 # Check for duplicates
                 if x in queue:
-                    print('Proc\'d')
+                    #print('Proc\'d')
                     # If the cost in the current is higher than the new found cost
                     # remove its current queue position and update the best parent path.
                     if parents[(x[0], x[1])][1] > parents[pos][1] + grid[x[0], x[1]]:
@@ -123,6 +126,36 @@ def firstSearch(breadth = True) -> list:
             #queue.extend(indices) if breadth else queue.extendleft(indices)
         
     return None
+
+# Returns a path found via the A-star search algorithm
+def A_starSearch(omni=False):
+    startTime = time.perf_counter()
+    priority = [(grid[start], start, None)]
+    parents = {}
+    visited = set()
+    while priority:
+        # print(priority)
+        cost, pos, parent = heapq.heappop(priority)
+        if pos == end:
+            path = []
+            while parent:
+                path = [pos] + path
+                pos = parent
+                parent = parents[parent]
+            path = [pos] + path
+            # visitedArray = np.array([list(x) for x in visited])
+            # visitedGrid = np.zeros_like(grid)
+            # visitedGrid[visitedArray[:,0], visitedArray[:,1]] = 1
+            # print(visitedGrid)
+            print(f'A-star found a path in {time.perf_counter()-startTime:.4f}')
+            return path
+        elif pos not in visited:
+            visited.add(pos)
+            parents[pos] = parent
+            #print(pos, 'is the current position')
+            for x in surroundIndices(pos):
+                #print(x, grid[x[0], x[1]], grid[x[0], x[1]] + (abs(x[0]-end[0]) + abs(x[1]-end[1]))*low, (abs(x[0]-end[0]) + abs(x[1]-end[1]))*low/2)
+                heapq.heappush(priority, (cost + grid[x[0], x[1]] + (abs(x[0]-end[0]) + abs(x[1]-end[1]))*low, (x[0], x[1]), pos))
 
 # Helper function to display path taken by a search
 def printResult(search, pathFound, cost):
@@ -144,6 +177,7 @@ if __name__ == '__main__':
     # print(test[(1,1)])
     cost = input("Would you like to do cost based search or just a basic search? (Cost/Basic): ").lower()
     while cost not in ['cost', 'basic']:
+        print("Please enter cost or basic.")
         cost = input("Would you like to do cost based search or just a basic search? (Cost/Basic): ").lower()
     if cost == 'cost':
         cost = True
@@ -157,6 +191,7 @@ if __name__ == '__main__':
     print(grid)
     printResult('Breadth First Search', np.array(firstSearch()), cost)
     printResult('Depth First Search', np.array(firstSearch(False)), cost)
+    printResult('A-Star Search', np.array(A_starSearch()), cost) 
     
 
 
