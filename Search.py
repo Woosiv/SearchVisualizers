@@ -5,7 +5,7 @@ from collections import deque
 import heapq
 grid = np.array([1,1])
 start = (1,1)
-end = (100,100)
+end = (9,9)
 low = 1
 # Initializes the initial grid for the search methods, based off if its 
 # a cost based search or basic search
@@ -137,6 +137,7 @@ def A_starSearch(omni=False):
         # print(priority)
         cost, pos, parent = heapq.heappop(priority)
         if pos == end:
+            print(f'A-star found a path in {time.perf_counter()-startTime:.4f}')
             path = []
             while parent:
                 path = [pos] + path
