@@ -4,5 +4,6 @@ A visualizer of various different search techniques on a grid.
 - [x] Breadth First Search
 - [x] Depth First Search
 - [x] A* Algorithm
+- [x] Dijkstra's Algorithm
 - [ ] Greedy Best First Search
 - [ ] More Algorithms TBD

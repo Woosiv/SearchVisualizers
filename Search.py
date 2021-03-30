@@ -128,7 +128,7 @@ def firstSearch(breadth = True) -> list:
     return None
 
 # Returns a path found via the A-star search algorithm
-def A_starSearch(omni=False):
+def A_starSearch(dijk=True, omni=False):
     startTime = time.perf_counter()
     priority = [(grid[start], start, None)]
     parents = {}
@@ -137,7 +137,10 @@ def A_starSearch(omni=False):
         # print(priority)
         cost, pos, parent = heapq.heappop(priority)
         if pos == end:
-            print(f'A-star found a path in {time.perf_counter()-startTime:.4f}')
+            if dijk:
+                print(f'Dijkstra\'s found a path in {time.perf_counter()-startTime:.4f}')
+            else:
+                print(f'A-star found a path in {time.perf_counter()-startTime:.4f}')
             path = []
             while parent:
                 path = [pos] + path
@@ -156,7 +159,11 @@ def A_starSearch(omni=False):
             #print(pos, 'is the current position')
             for x in surroundIndices(pos):
                 #print(x, grid[x[0], x[1]], grid[x[0], x[1]] + (abs(x[0]-end[0]) + abs(x[1]-end[1]))*low, (abs(x[0]-end[0]) + abs(x[1]-end[1]))*low/2)
-                heapq.heappush(priority, (cost + grid[x[0], x[1]] + (abs(x[0]-end[0]) + abs(x[1]-end[1]))*low, (x[0], x[1]), pos))
+                # Setting the heuristic to 0 turns A-star to be equivilant to Dijkstra's
+                if dijk:
+                    heapq.heappush(priority, (cost + grid[x[0], x[1]], (x[0], x[1]), pos))
+                else:
+                    heapq.heappush(priority, (cost + grid[x[0], x[1]] + (abs(x[0]-end[0]) + abs(x[1]-end[1]))*low, (x[0], x[1]), pos))
 
 # Helper function to display path taken by a search
 def printResult(search, pathFound, cost):
@@ -192,7 +199,8 @@ if __name__ == '__main__':
     print(grid)
     printResult('Breadth First Search', np.array(firstSearch()), cost)
     printResult('Depth First Search', np.array(firstSearch(False)), cost)
-    printResult('A-Star Search', np.array(A_starSearch()), cost) 
+    printResult('A-Star Search', np.array(A_starSearch()), cost)
+    printResult('Dijkstra\'s Search', np.array(A_starSearch(False)), cost)  
     
 
 
