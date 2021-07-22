@@ -1,0 +1,75 @@
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    border-sizing: border-box;
+  }
+  
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  html {
+    height: 100%;
+    width: 100%;
+    display: flex;
+  }
+  
+  #container {
+    display: grid;
+    background-color: white;
+    border-style: solid;
+    height: 100%;
+    aspect-ratio: 1;
+  }
+  
+  .item {
+    position: relative; 
+    justify-self: center;
+    align-self: center;
+    animation-name: deactivate;
+    animation-duration: 500ms;
+    animation-timing-function: ease-in-out;
+    
+    width: 80%;
+    aspect-ratio: 1;
+    border-style: solid;
+  /*   border-radius: 10px; */
+    border-width: 1px;
+    box-shadow: 1px 1px 3px gray;
+  }
+  
+  .item.active {
+    background-color: black;
+    animation-name: activate;
+    animation-duration: 500ms;
+  }
+  
+  .item.start {
+    background-color: blue;
+    animation-name: activate;
+    animation-duration: 500ms;
+  }
+  
+  .item.end {
+    background-color: red;
+    animation-name: activate;
+    animation-duration: 500ms;
+  }
+  
+  @keyframes activate {
+    100% {
+      transform: rotate(1turn);
+    }
+  }
+  
+  @keyframes deactivate {
+    100% {
+      transform: rotate(-1turn);
+    }
+  }
