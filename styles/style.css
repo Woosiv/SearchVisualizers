@@ -42,22 +42,29 @@
   /*   border-radius: 10px; */
     border-width: 1px;
     box-shadow: 1px 1px 3px gray;
+    background-color: white;
   }
   
   .item.active {
-    background-color: black;
+    background-color: #806633;
     animation-name: activate;
     animation-duration: 500ms;
   }
   
   .item.start {
-    background-color: blue;
+    background-color: #743380;
     animation-name: activate;
     animation-duration: 500ms;
   }
   
   .item.end {
-    background-color: red;
+    background-color: #658033;
+    animation-name: activate;
+    animation-duration: 500ms;
+  }
+
+  .item.path {
+    background-color: black;
     animation-name: activate;
     animation-duration: 500ms;
   }
