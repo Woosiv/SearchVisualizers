@@ -9,6 +9,6 @@ A visualizer of various different search techniques on a grid.
 - [ ] More Algorithms TBD
 
 # Search Methods to Visualize via Javascript
-- [ ] Breadth First Search
+- [x] Breadth First Search
 - [ ] Depth First Search
 - [ ] A* Algorithm
