@@ -64,7 +64,7 @@ class Queue {
     for (let x = 0; x < dim; x++) {
       grid[x] = new Array(dim);
       for (let y = 0; y < dim; y++) {
-        grid[x][y] = 0;
+        grid[x][y] = 1;
       }
     }
     // console.table(grid);
@@ -86,9 +86,11 @@ class Queue {
       }
     }
     else if (val.classList.contains('active'))  {
+      grid[x][y] = 1;
       val.classList.remove('active');
     }
-    else { 
+    else {
+      grid[x][y] = 0; 
       val.classList.toggle('active');
     }
   }
@@ -153,21 +155,28 @@ class Queue {
 
     // Up
     if (coords[0]-1 >= 0) {
-      result.push([coords[0]-1, coords[1]]);
+      if (grid[coords[0]-1][coords[1]]) {
+        result.push([coords[0]-1, coords[1]]);
+      }
     }
     // Right
     if (coords[1]+1 < grid[0].length) {
-      result.push([coords[0], coords[1]+1]);
+      if (grid[coords[0]][coords[1]+1]) {
+        result.push([coords[0], coords[1]+1]);
+      }
     }
     // Down
     if (coords[0]+1 < grid.length) {
-      result.push([coords[0]+1, coords[1]]);
+      if (grid[coords[0]+1][coords[1]]) {
+        result.push([coords[0]+1, coords[1]]);
+      }
     }
     // Left
     if (coords[1]-1 >= 0) {
-      result.push([coords[0], coords[1]-1]);
+      if (grid[coords[0]][coords[1]-1]) {
+        result.push([coords[0], coords[1]-1]);
+      }
     }
-
     return result;
   }
 
