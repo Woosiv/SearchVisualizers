@@ -49,22 +49,20 @@ function submitValues() {
   container.style.gridTemplateColumns = `repeat(${dim}, 1fr)`;
   container.style.gridTemplateRows = `repeat(${dim}, 1fr)`;
 
-  
   // Initalize grid for pathfind as well as the html GUI
   grid = new Array(dim);
   for (let x = 0; x < dim; x++) {
     grid[x] = new Array(dim);
 
     for (let y = 0; y < dim; y++) {
-
       let child = document.createElement('div');
-      child.className = 'item';
+      child.className = 'item none';
       child.id = `${x},${y}`;
       child.onclick = function() {
         childOnClick(x, y);
       };
       container.append(child);
-
+      child.style.animationDelay = `${(x+y)*75}ms`
       /* Keep a local version of the grid square
         stored in the grid. */
       grid[x][y] = [1, child];
@@ -74,17 +72,19 @@ function submitValues() {
   // Resets start and end values
   start = null;
   end = null;
-
-  // console.table(grid);
 }
 
 // Function added to children within the grid
 function childOnClick(x, y) {
+  console.log(grid[x][y]);
   let val = grid[x][y][1];
+  val.style.animationDelay = '0ms';
+  let classes = val.classList;
   if (start === null) {
     start = [x, y];
     startItem = val;
-    val.classList.toggle('start');
+    // val.classList.toggle('start');
+    classes.replace(classes[1], 'start');
   }
   else if(end === null) {
     // If the clicked point is the same as the start, ignore it
@@ -92,15 +92,16 @@ function childOnClick(x, y) {
     if (!(x == start[0] && y == start[1])) {
       end = [x, y];
       endItem = val;
-      val.classList.toggle('end');
+      // val.classList.toggle('end');
+      classes.replace(classes[1], 'end')
     }
   }
   else if (val.classList.contains('active'))  {
-    grid[x][y] = 1;
+    grid[x][y][0] = 1;
     val.classList.remove('active');
   }
   else {
-    grid[x][y] = 0; 
+    grid[x][y][0] = 0; 
     val.classList.toggle('active');
   }
 }
@@ -178,8 +179,6 @@ function activatePath(path) {
   
   let [startRGB, endRGB] = getRGBValues();
   let [gradR, gradG, gradB] = generateGradient(path.length, startRGB, endRGB);
-  
-  // console.log(rtran, gtran, btran); 
 
   path.forEach((element, index) => {
     if (element[0] === start[0] && element[1] === start[1]){
@@ -187,10 +186,12 @@ function activatePath(path) {
     }
     else {
       let tile = grid[element[0]][element[1]][1];
-      tile.classList.toggle('path');
+      let classes = tile.classList;
+      tile.style.animationDelay = '0ms';
+      classes.replace(classes[1], 'path');
       // console.log(`rgb(${startRGB[0] + rtran*index}, ${startRGB[1] + gtran*index}, ${startRGB[2] + btran*index})`)
       tile.style.backgroundColor = `rgb(${startRGB[0] + gradR*index}, ${startRGB[1] + gradG*index}, ${startRGB[2] + gradB*index})`
-      index++;
+      tile.style.animationDelay = `${index*75}ms`;
     }
   })
 }
@@ -201,8 +202,9 @@ function visualizeExplored(explored) {
     element = element.split(',');
     element.forEach((ele, index) => element[index] = parseInt(ele));
     let tile = grid[element[0]][element[1]][1];
-    if (!tile.classList.contains('path') && !tile.classList.contains('start') && !tile.classList.contains('end')) {
-      tile.classList.toggle('explored');
+    let classes = tile.classList;
+    if (classes[1] === 'none') {
+      classes.replace(classes[1], 'explored');
       let x = Math.abs(element[0] - start[0]);
       let y = Math.abs(element[1] - start[1]);
       
