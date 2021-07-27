@@ -186,7 +186,7 @@ function activatePath(path) {
       
     }
     else {
-      let tile = document.getElementById(`${element[0]},${element[1]}`)
+      let tile = grid[element[0]][element[1]][1];
       tile.classList.toggle('path');
       // console.log(`rgb(${startRGB[0] + rtran*index}, ${startRGB[1] + gtran*index}, ${startRGB[2] + btran*index})`)
       tile.style.backgroundColor = `rgb(${startRGB[0] + gradR*index}, ${startRGB[1] + gradG*index}, ${startRGB[2] + gradB*index})`
