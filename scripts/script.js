@@ -79,33 +79,26 @@ function submitValues() {
 // Function added to children within the grid
 function childOnClick(x, y) {
   // console.log(grid[x][y]);
-  let val = grid[x][y][1];
-  val.style.backgroundColor = '';
+  let child = grid[x][y][1];
+  child.style.backgroundColor = '';
   // val.style.animationDelay = '0ms';
-  let classes = val.classList;
+  let classes = child.classList;
   if (start === null) {
     start = [x, y];
-    startItem = val;
-    // val.classList.toggle('start');
-    val.style.setProperty('--previous-color', window.getComputedStyle(val).backgroundColor);
-    classes.replace(classes[1], 'start');
-    resetAnimation(val);
+    startItem = child;
+    changeClass(child, 'start');
   }
   else if(end === null) {
     // If the clicked point is the same as the start, ignore it
     if (!(x == start[0] && y == start[1])) {
       end = [x, y];
-      endItem = val;
-      val.style.setProperty('--previous-color', window.getComputedStyle(val).backgroundColor);
-      classes.replace(classes[1], 'end')
-      resetAnimation(val);
+      endItem = child;
+      changeClass(child, 'end');
     }
   }
   else if (classes[1] === 'none')  {
     grid[x][y][0] = 0;
-    val.style.setProperty('--previous-color', window.getComputedStyle(val).backgroundColor);
-    classes.replace(classes[1], 'wall');
-    resetAnimation(val);
+    changeClass(child, 'wall');
   }
   // Untoggle the current tile
   else {
@@ -120,16 +113,15 @@ function childOnClick(x, y) {
         endItem = null;
         break;
     } 
-    val.style.setProperty('--previous-color', window.getComputedStyle(val).backgroundColor);
-    val.style.setProperty('--grid-pos', 0);
-    classes.replace(classes[1], 'none');
-    resetAnimation(val);
+    child.style.setProperty('--grid-pos', 0);
+    changeClass(child, 'none');
   }
 }
 
 function pathFind() {
   if (!start || !end) {
-    console.error('The current grid does not have a start or end and cannot path find.')
+    console.error
+    ('The current grid does not have a start or end and cannot path find.')
     return;
   }
   let queue = new Queue();
@@ -137,27 +129,28 @@ function pathFind() {
   // Push into queue with format [coordinate, parents]
   queue.push([start, []]);
   while(!queue.isEmpty()) {
-    let curr = queue.dequeue();
-    let nearby = nearbyCoords(curr[0]);
+    let [curr, parents] = queue.dequeue();
+    let nearby = nearbyCoords(curr);
     for (let x = 0; x < nearby.length; x++) {
-      // First check if element is the end
-      let ele = nearby[x];
-      if (ele[0] === end[0] && ele[1] === end[1]) {
+      let coords = nearby[x];
+      
+      // If element reached is the end
+      if (coords[0] === end[0] && coords[1] === end[1]) {
         // Make a copy of the path
-        let path = curr[1].map((x) => x);
-        path.push(curr[0]);
+        let parentsCopy = parents.map((x) => x);
+        parentsCopy.push(curr);
         visualizeExplored(visited);
-        setTimeout(activatePath(path, `${path.length*250}ms`), 100000);
+        activatePath(parentsCopy, `${parentsCopy.length*250}ms`);
         return;
       }
       // Else add into queue
       else {
-        let eleString = `${ele[0]},${ele[1]}`;
+        let eleString = `${coords[0]},${coords[1]}`;
         if (!visited.includes(eleString)) {
           visited.push(eleString);
-          let path = curr[1].map((x) => x);
-          path.push(curr[0]);
-          queue.push([ele, path]);
+          let parentsCopy = parents.map((x) => x);
+          parentsCopy.push(curr);
+          queue.push([coords, parentsCopy]);
         }
       }
     }
@@ -200,41 +193,36 @@ function activatePath(path, delay) {
   let [startRGB, endRGB] = getRGBValues();
   let [gradR, gradG, gradB] = generateGradient(path.length, startRGB, endRGB);
 
-  let time = 3000/path.length;
   path.forEach((element, index) => {
     if (element[0] === start[0] && element[1] === start[1]){
       
     }
     else {
-      let tile = grid[element[0]][element[1]][1];
-      let classes = tile.classList;
-      // tile.style.animationDelay = '0ms';
-      tile.style.setProperty('--previous-color', '#ac945a');
-      classes.replace(classes[1], 'path');
-      // console.log(`rgb(${startRGB[0] + rtran*index}, ${startRGB[1] + gtran*index}, ${startRGB[2] + btran*index})`)
-      tile.style.setProperty('--color', `rgb(${startRGB[0] + gradR*index}, ${startRGB[1] + gradG*index}, ${startRGB[2] + gradB*index})`)
-      tile.style.setProperty('--explore-delay', delay);
-      tile.style.setProperty('--index', index);
-      // tile.style.setProperty('--delay', `${time}ms`);
-      resetAnimation(tile);
+      let child = grid[element[0]][element[1]][1];
+      changeClass(child, 'path', '#ac945a')
+      child.style.setProperty('--color', 
+      `rgb(${startRGB[0] + gradR*index},
+           ${startRGB[1] + gradG*index},
+           ${startRGB[2] + gradB*index})`)
+      child.style.setProperty('--explore-delay', delay);
+      child.style.setProperty('--index', index);
     }
   })
 }
 
 // Function that visualizes the explored grids
 function visualizeExplored(explored) {
-  explored.forEach((element, index) => {
-    element = element.split(',');
-    element.forEach((ele, index) => element[index] = parseInt(ele));
-    let tile = grid[element[0]][element[1]][1];
-    let classes = tile.classList;
+  explored.forEach((coords, index) => {
+    coords = coords.split(',');
+    coords.forEach((coord, index) => coords[index] = parseInt(coord));
+    let child = grid[coords[0]][coords[1]][1];
+    let classes = child.classList;
     if (classes[1] === 'none') {
-      classes.replace(classes[1], 'explored');
-      let x = Math.abs(element[0] - start[0]);
-      let y = Math.abs(element[1] - start[1]);
+      let x = Math.abs(coords[0] - start[0]);
+      let y = Math.abs(coords[1] - start[1]);
       
-      tile.style.setProperty('--explored-pos', `${(x+y)}`);
-      resetAnimation(tile);
+      child.style.setProperty('--explored-pos', `${(x+y)}`);
+      changeClass(child, 'explored')
     }
   })
 }
@@ -269,10 +257,20 @@ function nearbyCoords(coords) {
   return result;
 }
 
-function resetAnimation(val) {
-  val.style.animation = 'none';
+/* Helper function that updates the class of a grid position
+and resets the animation so that it plays properly */
+function changeClass(child, className, color) {
+  if (color) {
+    child.style.setProperty('--previous-color', color);
+  }
+  else {
+    child.style.setProperty('--previous-color', 
+      window.getComputedStyle(child).backgroundColor);
+  }
+  child.classList.replace(child.classList[1], className);
+  child.style.animation = 'none';
   setTimeout(function() {
-    val.style.animation = '';
+    child.style.animation = '';
   }, 20);
 }
 
