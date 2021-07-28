@@ -76,6 +76,10 @@
     --explore-delay: 0ms;
     --index: 0;
     --delay: 250ms;
+    --custom-color: 0;
+    animation-name: activate;
+    /* animation-duration: calc(var(--explore-delay)*2); */
+    /* animation-timing-function: linear; */
     animation-delay: calc(var(--explore-delay) + (var(--index) * var(--delay)) + 250ms)
   }
 
@@ -96,7 +100,26 @@
     }
     100% {
       transform: scale(1);
-      background-color: var(--color);
+      /* background-color: var(--color); */
+      background-color: var(--custom-color, var(--color));
+    }
+  }
+
+  @keyframes activatePath {
+    0% {
+      background-color: white;
+    }
+    25%, 75% {
+      transform: scale(.75);
+    }
+    50% {
+      transform: scale(1);
+      /* background-color: var(--color); */
+      background-color: var(--previous-color);
+    }
+    100% {
+      transform: scale(1);
+      background-color: var(--custom-color);
     }
   }
 

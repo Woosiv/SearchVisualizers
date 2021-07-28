@@ -71,16 +71,18 @@ function submitValues() {
     }
   }
 
-  // Resets start and end values
+  // Resets state values
   start = null;
   end = null;
+  exploredRecord = [];
+  pathRecord = [];
 }
 
 // Function added to children within the grid
 function childOnClick(x, y) {
   // console.log(grid[x][y]);
   let child = grid[x][y][1];
-  child.style.backgroundColor = '';
+  // child.style.backgroundColor = '';
   // val.style.animationDelay = '0ms';
   let classes = child.classList;
   if (start === null) {
@@ -139,8 +141,9 @@ function pathFind() {
         // Make a copy of the path
         let parentsCopy = parents.map((x) => x);
         parentsCopy.push(curr);
-        visualizeExplored(visited);
         activatePath(parentsCopy, `${parentsCopy.length*250}ms`);
+        visualizeExplored(visited);
+        // console.table(grid);
         return;
       }
       // Else add into queue
@@ -150,6 +153,7 @@ function pathFind() {
           visited.push(eleString);
           let parentsCopy = parents.map((x) => x);
           parentsCopy.push(curr);
+          
           queue.push([coords, parentsCopy]);
         }
       }
@@ -189,7 +193,17 @@ function getRGBValues() {
 
 // Activate CSS to visualize path 
 function activatePath(path, delay) {
-  console.log(delay)
+
+  // Removes previous path if needed
+  if(pathRecord.length) {
+    pathRecord.forEach((coords) => {
+      let child = grid[coords[0]][coords[1]][1];
+      if (child.classList[1] === 'path'){
+        changeClass(child, 'none');
+      }
+    })
+  }
+  
   let [startRGB, endRGB] = getRGBValues();
   let [gradR, gradG, gradB] = generateGradient(path.length, startRGB, endRGB);
 
@@ -200,7 +214,7 @@ function activatePath(path, delay) {
     else {
       let child = grid[element[0]][element[1]][1];
       changeClass(child, 'path', '#ac945a')
-      child.style.setProperty('--color', 
+      child.style.setProperty('--custom-color', 
       `rgb(${startRGB[0] + gradR*index},
            ${startRGB[1] + gradG*index},
            ${startRGB[2] + gradB*index})`)
@@ -208,10 +222,25 @@ function activatePath(path, delay) {
       child.style.setProperty('--index', index);
     }
   })
+  pathRecord = path.map((x) => x);
 }
 
 // Function that visualizes the explored grids
 function visualizeExplored(explored) {
+  // Resets previous explored if needed
+  if(exploredRecord.length) {
+    console.log('Existing explored found, removing', exploredRecord.length)
+    console.table(exploredRecord)
+    exploredRecord.forEach((coords) => {
+      coords = coords.split(',');
+      coords.forEach((coord, index) => coords[index] = parseInt(coord));
+      let child = grid[coords[0]][coords[1]][1];
+      if (child.classList[1] === 'explored'){
+        console.log('removing', coords)
+        changeClass(child, 'none');
+      }
+    })
+  }
   explored.forEach((coords, index) => {
     coords = coords.split(',');
     coords.forEach((coord, index) => coords[index] = parseInt(coord));
@@ -225,6 +254,8 @@ function visualizeExplored(explored) {
       changeClass(child, 'explored')
     }
   })
+  exploredRecord = explored.map((x) => x);
+  console.table(exploredRecord);
 }
 
 // Helper function to find nearby grid coordinates
@@ -269,6 +300,9 @@ function changeClass(child, className, color) {
   }
   child.classList.replace(child.classList[1], className);
   child.style.animation = 'none';
+  if(child.classList[1] !== 'path') {
+    child.style.setProperty('--custom-color', '')
+  }
   setTimeout(function() {
     child.style.animation = '';
   }, 20);
@@ -280,6 +314,8 @@ let end = null;
 let endItem;
 let grid = [];
 let dim;
+let pathRecord = [];
+let exploredRecord = [];
 submitValues();
 
 // export default
