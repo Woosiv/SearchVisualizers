@@ -1,3 +1,5 @@
+// import Queue from './script2.js';
+
 let container = document.getElementById('container');
 // A queue data structure for BFS
 class Queue {
@@ -62,7 +64,7 @@ function submitValues() {
         childOnClick(x, y);
       };
       container.append(child);
-      child.style.animationDelay = `${(x+y)*75}ms`
+      child.style.setProperty('--grid-pos', x + y);
       /* Keep a local version of the grid square
         stored in the grid. */
       grid[x][y] = [1, child];
@@ -76,38 +78,57 @@ function submitValues() {
 
 // Function added to children within the grid
 function childOnClick(x, y) {
-  console.log(grid[x][y]);
+  // console.log(grid[x][y]);
   let val = grid[x][y][1];
-  val.style.animationDelay = '0ms';
+  val.style.backgroundColor = '';
+  // val.style.animationDelay = '0ms';
   let classes = val.classList;
   if (start === null) {
     start = [x, y];
     startItem = val;
     // val.classList.toggle('start');
+    val.style.setProperty('--previous-color', window.getComputedStyle(val).backgroundColor);
     classes.replace(classes[1], 'start');
+    resetAnimation(val);
   }
   else if(end === null) {
     // If the clicked point is the same as the start, ignore it
-    console.log(start[0], start[1])
     if (!(x == start[0] && y == start[1])) {
       end = [x, y];
       endItem = val;
-      // val.classList.toggle('end');
+      val.style.setProperty('--previous-color', window.getComputedStyle(val).backgroundColor);
       classes.replace(classes[1], 'end')
+      resetAnimation(val);
     }
   }
-  else if (val.classList.contains('active'))  {
-    grid[x][y][0] = 1;
-    val.classList.remove('active');
+  else if (classes[1] === 'none')  {
+    grid[x][y][0] = 0;
+    val.style.setProperty('--previous-color', window.getComputedStyle(val).backgroundColor);
+    classes.replace(classes[1], 'wall');
+    resetAnimation(val);
   }
+  // Untoggle the current tile
   else {
-    grid[x][y][0] = 0; 
-    val.classList.toggle('active');
+    grid[x][y][0] = 1;
+    switch (classes[1]) {
+      case 'start':
+        start = null;
+        startItem = null;
+        break;
+      case 'end':
+        end = null;
+        endItem = null;
+        break;
+    } 
+    val.style.setProperty('--previous-color', window.getComputedStyle(val).backgroundColor);
+    val.style.setProperty('--grid-pos', 0);
+    classes.replace(classes[1], 'none');
+    resetAnimation(val);
   }
 }
 
 function pathFind() {
-  if (!start && !end) {
+  if (!start || !end) {
     console.error('The current grid does not have a start or end and cannot path find.')
     return;
   }
@@ -116,7 +137,6 @@ function pathFind() {
   // Push into queue with format [coordinate, parents]
   queue.push([start, []]);
   while(!queue.isEmpty()) {
-    // queue.toString();
     let curr = queue.dequeue();
     let nearby = nearbyCoords(curr[0]);
     for (let x = 0; x < nearby.length; x++) {
@@ -126,8 +146,8 @@ function pathFind() {
         // Make a copy of the path
         let path = curr[1].map((x) => x);
         path.push(curr[0]);
-        activatePath(path);
         visualizeExplored(visited);
+        setTimeout(activatePath(path, `${path.length*250}ms`), 100000);
         return;
       }
       // Else add into queue
@@ -175,11 +195,12 @@ function getRGBValues() {
 }
 
 // Activate CSS to visualize path 
-function activatePath(path) {
-  
+function activatePath(path, delay) {
+  console.log(delay)
   let [startRGB, endRGB] = getRGBValues();
   let [gradR, gradG, gradB] = generateGradient(path.length, startRGB, endRGB);
 
+  let time = 3000/path.length;
   path.forEach((element, index) => {
     if (element[0] === start[0] && element[1] === start[1]){
       
@@ -187,11 +208,15 @@ function activatePath(path) {
     else {
       let tile = grid[element[0]][element[1]][1];
       let classes = tile.classList;
-      tile.style.animationDelay = '0ms';
+      // tile.style.animationDelay = '0ms';
+      tile.style.setProperty('--previous-color', '#ac945a');
       classes.replace(classes[1], 'path');
       // console.log(`rgb(${startRGB[0] + rtran*index}, ${startRGB[1] + gtran*index}, ${startRGB[2] + btran*index})`)
-      tile.style.backgroundColor = `rgb(${startRGB[0] + gradR*index}, ${startRGB[1] + gradG*index}, ${startRGB[2] + gradB*index})`
-      tile.style.animationDelay = `${index*75}ms`;
+      tile.style.setProperty('--color', `rgb(${startRGB[0] + gradR*index}, ${startRGB[1] + gradG*index}, ${startRGB[2] + gradB*index})`)
+      tile.style.setProperty('--explore-delay', delay);
+      tile.style.setProperty('--index', index);
+      // tile.style.setProperty('--delay', `${time}ms`);
+      resetAnimation(tile);
     }
   })
 }
@@ -208,8 +233,8 @@ function visualizeExplored(explored) {
       let x = Math.abs(element[0] - start[0]);
       let y = Math.abs(element[1] - start[1]);
       
-      tile.style.animationDelay = `${(x+y)*250}ms`
-      console.log(`${(x+y)*250}ms`)
+      tile.style.setProperty('--explored-pos', `${(x+y)}`);
+      resetAnimation(tile);
     }
   })
 }
@@ -219,29 +244,36 @@ function nearbyCoords(coords) {
   let result = [];
   // Up
   if (coords[0]-1 >= 0) {
-    if (grid[coords[0]-1][coords[1]]) {
+    if (grid[coords[0]-1][coords[1]][0]) {
       result.push([coords[0]-1, coords[1]]);
     }
   }
   // Right
   if (coords[1]+1 < grid[0].length) {
-    if (grid[coords[0]][coords[1]+1]) {
+    if (grid[coords[0]][coords[1]+1][0]) {
       result.push([coords[0], coords[1]+1]);
     }
   }
   // Down
   if (coords[0]+1 < grid.length) {
-    if (grid[coords[0]+1][coords[1]]) {
+    if (grid[coords[0]+1][coords[1]][0]) {
       result.push([coords[0]+1, coords[1]]);
     }
   }
   // Left
   if (coords[1]-1 >= 0) {
-    if (grid[coords[0]][coords[1]-1]) {
+    if (grid[coords[0]][coords[1]-1][0]) {
       result.push([coords[0], coords[1]-1]);
     }
   }
   return result;
+}
+
+function resetAnimation(val) {
+  val.style.animation = 'none';
+  setTimeout(function() {
+    val.style.animation = '';
+  }, 20);
 }
 
 let start = null;
@@ -251,3 +283,5 @@ let endItem;
 let grid = [];
 let dim;
 submitValues();
+
+// export default

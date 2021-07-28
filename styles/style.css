@@ -30,84 +30,74 @@
   }
   
   .item {
+    /* Variables for each item */
+    --grid-pos: 0;
+    --color: white;
+    --previous-color: white;
+
+    /* Positioning */
     position: relative; 
     justify-self: center;
     align-self: center;
-    animation-name: deactivate;
+
+    /* Animation values */
+    animation-name: activate;
     animation-duration: 500ms;
     animation-timing-function: ease-in-out;
-    
+    animation-fill-mode: forwards;
+    animation-delay: calc(var(--grid-pos) * 75ms);
+
+    /* Styling */
     width: 100%;
     aspect-ratio: 1;
-    /* border-style: solid; */
-    /* border-radius: 10px; */
     border-width: 1px;
     box-shadow: 1px 1px 3px gray;
-    background-color: white;
-    /* color: white; */
+    background-color: var(--previous-color);
+
+    
   }
   
-  .item.active {
-    background-color: #735241;
-    animation-name: activate;
-    
+  .item.wall {
+    --color: #735241;
+    animation-delay: 75ms;
   }
   
   .item.start {
-    background-color: #52a44a;
-    animation-name: activate;
- 
+    --color: #52a44a;
+    animation-delay: 75ms;
   }
   
   .item.end {
-    background-color: #417b41;
-    animation-name: activate;
- 
+    --color: #417b41;
+    animation-delay: 75ms;
   }
 
   .item.path {
-    animation-name: activate;
+    --explore-delay: 0ms;
+    --index: 0;
+    --delay: 250ms;
+    animation-delay: calc(var(--explore-delay) + (var(--index) * var(--delay)) + 250ms)
   }
 
   .item.explored {
-    animation-name: activateExplore;
-    animation-fill-mode: forwards;
+    animation-name: activate;
+    --color: #ac945a;
+    --explored-pos: 0;
+
+    animation-delay: calc(var(--explored-pos) * 250ms);
   }
   
   @keyframes activate {
+    0% {
+      background-color: var(--previous-color);
+    }
     50% {
       transform: scale(.75);
     }
     100% {
       transform: scale(1);
+      background-color: var(--color);
     }
   }
 
-  @keyframes activatePath {
-    50% {
-      transform: scale(.75);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  
-  @keyframes activateExplore {
-    50% {
-      transform: scale(.75);
-    }
-    100% {
-      transform: scale(1);
-      background-color: #ac945a;
-    }
-  }
 
-  @keyframes deactivate {
-    50% {
-      transform: scale(.75);
-    }
-    100% {
-      transform: scale(1);
-      background-color: white;
-    }
-  }
