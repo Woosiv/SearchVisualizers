@@ -11,4 +11,4 @@ A visualizer of various different search techniques on a grid.
 # Search Methods to Visualize via Javascript
 - [x] Breadth First Search
 - [ ] Depth First Search
-- [ ] A* Algorithm
+- [x] A* Algorithm
