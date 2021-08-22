@@ -8,11 +8,9 @@ class Queue {
     this.head = 0;
     this.tail = 0;
   }
-  
   push(item) {
     this.queue[this.tail++] = item;
   }
-  
   dequeue() {
     if (this.isEmpty()) {
       return null;
@@ -21,11 +19,9 @@ class Queue {
     delete this.queue[this.head++];
     return res;
   }
-
   isEmpty() {
     return this.head === this.tail;
   }
-
   toString() {
     let temp = this.head;
     while(temp !== this.tail) {
@@ -33,12 +29,92 @@ class Queue {
     }
   }
 }
+// A heap-based priority queue for A* search
+class PriorityQueue {
 
-// class PriorityQueue {
-//   constructor() {
-//     this.heap = []
-//   }
-// }
+  // Elements will be stored in format of [element, value]
+  constructor () {
+      this.heap = [];
+  }
+  
+  isEmpty() {
+    return this.heap.length == 0;
+  }
+
+  push(element) {
+      this.heap.push(element);
+      if (this.heap.length == 1) {
+        return;
+      }
+      this.heapUp(this.heap.length-1);
+  }
+
+  heapUp(index) {
+      let parentIndex = Math.floor((index-1)/2);
+      if (parentIndex < 0) {
+        return;
+      }
+      console.log(parentIndex)
+      console.log('Values of parent and child')
+      console.log(this.heap[index][1])
+      console.log(this.heap[parentIndex][1])
+      // Check if they are in correct order
+      if (this.heap[index][1] < this.heap[parentIndex][1]) {
+          console.log('swapped')
+          let temp = this.heap[parentIndex];
+          this.heap[parentIndex] = this.heap[index];
+          this.heap[index] = temp;
+          this.heapUp(parentIndex);
+      }
+  }
+
+  pop() {
+    let min = this.heap[0];
+    if(this.heap.length != 1) {
+      this.heap[0] = this.heap.pop();
+      this.heapDown(0);
+    }
+    else {
+        this.heap.pop();
+    }
+    return min;
+  }
+
+  heapDown(index) {
+      let length = this.heap.length;
+      let left = 2*index+1;
+      let right = 2*index+2;
+      let smallerIndex = null;
+      // Take the smallest child
+      if (left < length) {
+          smallerIndex = left;
+      }
+      if (right < length && this.heap[right][1] < this.heap[smallerIndex][1]) {
+          smallerIndex = right;
+      }
+      if (smallerIndex == null) {
+        return;
+      }
+      // check if the smallest child is smaller than the parent
+      if (this.heap[smallerIndex][1] < this.heap[index][1]) {
+          let temp = this.heap[smallerIndex];
+          this.heap[smallerIndex] = this.heap[index];
+          this.heap[index] = temp;
+          this.heapDown(smallerIndex);
+      }
+  }
+
+  delete(index) {
+      let deleted = this.heap[index][1];
+      this.heap[index] = this.heap.pop();
+      if (this.heap[index][1] < deleted) {
+          this.heapUp(index);
+      }
+      else if (this.heap[index][1] > deleted) {
+          this.heapDown(index);
+      }
+  }
+}
 
 // Resets the grid as well as updating grid dimensions
 function submitValues() { 
@@ -161,12 +237,70 @@ function pathFind() {
   }
 }
 
-// TODO Implement A* search
+function heuristic(pos) {
+  return Math.abs(pos[0] - end[0]) + Math.abs(pos[1] - end[1]);
+}
+
+/* Utilizes A* search to find a path
+   from the start and end
+*/
 function starSearch() {
-  if (!start && !end) {
+  if (!start || !end) {
     console.log('failed')
     return;
   }
+
+  let pq = new PriorityQueue();
+  pq.push([start, 0]);
+  let cameFrom = grid.map(x=> x.map(y=> null));
+
+  let gScore = grid.map(x=> x.map(y=> Infinity));
+  gScore[start[0]][start[1]] = 0;
+
+  let fScore = grid.map(x=> x.map(y=> Infinity));
+  fScore[start[0]][start[1]] = heuristic(start);
+
+  let visited = [`${start[0]},${start[1]}`];
+
+  while(!pq.isEmpty()) {
+    let [curr, value] = pq.pop();
+    let nearby = nearbyCoords(curr);
+    let tempScore = gScore[curr[0]][curr[1]] + 1;
+    for (let x = 0; x < nearby.length; x++) {
+      let coords = nearby[x];
+      if (coords[0] === end[0] && coords[1] === end[1]) {
+        // Make a copy of the path
+        console.log('found ending?')
+        let path = [curr];
+        while(cameFrom[path[0][0]][path[0][1]]) {
+          path.unshift(cameFrom[path[0][0]][path[0][1]]);
+        }
+        activatePath(path, `${path.length*250}ms`);
+        visualizeExplored(visited);
+        // console.table(grid);
+        return;
+      }
+      
+      if (tempScore < gScore[coords[0]][coords[1]]) {
+        cameFrom[coords[0]][coords[1]] = curr;
+        gScore[coords[0]][coords[1]] = tempScore;
+        fScore[coords[0]][coords[1]] = gScore[coords[0]][coords[1]] + heuristic(coords);
+        console.log(fScore[coords[0]][coords[1]])
+        pq.push([coords, fScore[coords[0]][coords[1]]])
+        console.table(pq.heap)
+      }
+
+      if (!visited.includes(`${coords[0]},${coords[1]}`)) {
+        visited.push(`${coords[0]},${coords[1]}`)
+      } 
+
+      // console.table(gScore);
+      // console.table(fScore)
+    }
+  }
+  console.log('ended')
+
+
 }
 
 // Generate a gradient from start to end based on the length of the path
@@ -241,6 +375,7 @@ function visualizeExplored(explored) {
       }
     })
   }
+
   explored.forEach((coords, index) => {
     coords = coords.split(',');
     coords.forEach((coord, index) => coords[index] = parseInt(coord));
@@ -317,5 +452,3 @@ let dim;
 let pathRecord = [];
 let exploredRecord = [];
 submitValues();
-
-// export default
